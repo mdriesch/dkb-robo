@@ -1,5 +1,5 @@
 # pylint: disable=c3001, e1101, r0913, w0108, w0622
-""" dkb_robo cli """
+"""dkb_robo cli"""
 from datetime import date
 from pathlib import Path
 import pathlib
@@ -11,6 +11,7 @@ import tabulate
 import click
 import dkb_robo
 from dkb_robo.utilities import object2dictionary
+import os
 
 sys.path.append("..")
 
@@ -156,7 +157,16 @@ def _transactionlink_lookup(ctx, name, account, account_dic, unfiltered):
 )
 @click.pass_context
 def main(
-    ctx, debug, unfiltered, mfa_device, use_tan, chip_tan, username, password, format
+    ctx,
+    debug,
+    unfiltered,
+    mfa_device,
+    use_tan,
+    chip_tan,
+    username,
+    password,
+    format,
+    output,
 ):  # pragma: no cover
     """main fuunction"""
 
@@ -174,11 +184,19 @@ def main(
     ctx.obj["USERNAME"] = username
     ctx.obj["PASSWORD"] = password
     ctx.obj["FORMAT"] = _load_format(format)
+    ctx.obj["OUTPUT"] = output
 
 
 @main.command()
+@click.option(
+    "--output",
+    "-o",
+    default=Path(os.getcwd()) / "output.txt",
+    help=f"File to write to (default: {Path(os.getcwd()) / 'output.txt'})",
+    envvar="DKB_OUTPUTFILE",
+)
 @click.pass_context
-def accounts(ctx):
+def accounts(ctx, output):  # pragma: no cover
     """get list of account"""
     try:
         with _login(ctx) as dkb:
@@ -192,6 +210,10 @@ def accounts(ctx):
                 if "transactions" in value:
                     del value["transactions"]
             ctx.obj["FORMAT"](list(accounts_dict.values()))
+            print("Writing accounts to file")
+            with open(ctx.obj["OUTPUT"], mode="w") as _file:
+                _file.write(json.dumps(list(accounts_dict.values()), indent=2))
+
     except dkb_robo.DKBRoboError as _err:
         click.echo(_err.args[0], err=True)
 
