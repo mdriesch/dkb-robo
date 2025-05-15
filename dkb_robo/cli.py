@@ -166,7 +166,6 @@ def main(
     username,
     password,
     format,
-    output,
 ):  # pragma: no cover
     """main fuunction"""
 
@@ -184,7 +183,6 @@ def main(
     ctx.obj["USERNAME"] = username
     ctx.obj["PASSWORD"] = password
     ctx.obj["FORMAT"] = _load_format(format)
-    ctx.obj["OUTPUT"] = output
 
 
 @main.command()
@@ -211,7 +209,7 @@ def accounts(ctx, output):  # pragma: no cover
                     del value["transactions"]
             ctx.obj["FORMAT"](list(accounts_dict.values()))
             print("Writing accounts to file")
-            with open(ctx.obj["OUTPUT"], mode="w") as _file:
+            with open(output, mode="w") as _file:
                 _file.write(json.dumps(list(accounts_dict.values()), indent=2))
 
     except dkb_robo.DKBRoboError as _err:
