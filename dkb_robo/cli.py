@@ -250,8 +250,15 @@ def accounts(ctx, output):  # pragma: no cover
     type=click.DateTime(formats=[DATE_FORMAT, DATE_FORMAT_ALTERNATE]),
     default=date.today().strftime(DATE_FORMAT),
 )
+@click.option(
+    "--output",
+    "-o",
+    default=Path(os.getcwd()) / "output.txt",
+    help=f"File to write to (default: {Path(os.getcwd()) / 'output.txt'})",
+    envvar="DKB_OUTPUTFILE",
+)
 def transactions(
-    ctx, name, account, transaction_type, date_from, date_to
+    ctx, name, account, transaction_type, date_from, date_to, output
 ):  # pragma: no cover
     """get list of transactions"""
 
@@ -268,6 +275,9 @@ def transactions(
                 transaction_type=transaction_type,
             )
             ctx.obj["FORMAT"](transactions_list)
+            print("Writing accounts to file")
+            with open(output, mode="w") as _file:
+                _file.write(json.dumps(transactions_list, indent=2))
 
     except dkb_robo.DKBRoboError as _err:
         click.echo(_err.args[0], err=True)
